@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>6 Sense — Форма для команды</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+    :root{
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --line-2:#d1d5db;
+      --accent:#ff6b35;
+      --accent-2:#ff8f5e;
+      --accent-soft:#fff3ed;
+      --green:#16a34a;
+      --green-soft:#ecfdf3;
+      --red:#ef4444;
+      --red-soft:#fef2f2;
+      --shadow:0 18px 60px rgba(17,24,39,.10);
+      --shadow-2:0 10px 30px rgba(17,24,39,.08);
+
+      --junior:#64748b;
+      --middle:#2563eb;
+      --senior:#f97316;
+      --executive:#7c3aed;
+      --clevel:#111827;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(255,107,53,.10), transparent 26%),
+        radial-gradient(circle at 90% 0%, rgba(124,58,237,.10), transparent 22%),
+        radial-gradient(circle at 50% 100%, rgba(37,99,235,.08), transparent 24%),
+        var(--bg);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    button,input,select,textarea{font:inherit}
+    ::selection{background:rgba(255,107,53,.18)}
+
+    .blob{
+      position:fixed;
+      inset:auto;
+      border-radius:999px;
+      filter:blur(60px);
+      pointer-events:none;
+      opacity:.65;
+      z-index:0;
+    }
+    .blob--1{width:240px;height:240px;left:-60px;top:180px;background:rgba(255,107,53,.14)}
+    .blob--2{width:280px;height:280px;right:-90px;top:80px;background:rgba(37,99,235,.10)}
+    .blob--3{width:220px;height:220px;left:40%;bottom:-100px;background:rgba(124,58,237,.10)}
+
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:50;
+      backdrop-filter:blur(18px);
+      background:rgba(255,255,255,.82);
+      border-bottom:1px solid rgba(229,231,235,.9);
+    }
+    .topbar__inner{
+      max-width:1380px;
+      margin:0 auto;
+      padding:14px 24px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      min-width:0;
+    }
+    .brand__mark{
+      width:44px;height:44px;border-radius:14px;
+      background:linear-gradient(135deg,var(--accent),var(--accent-2));
+      color:#fff;
+      display:grid;
+      place-items:center;
+      font-weight:900;
+      box-shadow:0 12px 28px rgba(255,107,53,.28);
+      flex:none;
+    }
+    .brand__mark img{
+      width:32px;height:32px;
+    }
+    .brand__name{
+      font-weight:900;
+      letter-spacing:-.03em;
+      line-height:1.1;
+    }
+    .brand__sub{
+      font-size:13px;
+      color:var(--muted);
+      margin-top:2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:52vw;
+    }
+    .topbar__chip{
+      padding:10px 14px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:#fff;
+      color:#374151;
+      font-size:13px;
+      font-weight:600;
+      box-shadow:0 8px 20px rgba(17,24,39,.04);
+      white-space:nowrap;
+    }
+
+    .shell{
+      max-width:1380px;
+      margin:0 auto;
+      padding:30px 24px 56px;
+      position:relative;
+      z-index:1;
+    }
+
+    .page-head{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:20px;
+      align-items:end;
+      margin-bottom:22px;
+    }
+    .hero-card{
+      background:linear-gradient(135deg, rgba(255,255,255,.92), rgba(255,255,255,.78));
+      border:1px solid rgba(229,231,235,.9);
+      border-radius:28px;
+      box-shadow:var(--shadow);
+      padding:30px;
+    }
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:var(--accent);
+      margin-bottom:14px;
+    }
+    .eyebrow::before{
+      content:'';
+      width:8px;height:8px;border-radius:999px;
+      background:var(--accent);
+      box-shadow:0 0 0 6px rgba(255,107,53,.12);
+    }
+    .hero-card h1{
+      margin:0 0 12px;
+      font-size:clamp(30px,4vw,48px);
+      line-height:1.05;
+      letter-spacing:-.05em;
+    }
+    .hero-card p{
+      margin:0;
+      color:var(--muted);
+      font-size:16px;
+      line-height:1.7;
+      max-width:900px;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns:minmax(0,1.18fr) minmax(360px,.82fr);
+      gap:22px;
+      align-items:start;
+    }
+
+    .card{
+      background:rgba(255,255,255,.90);
+      backdrop-filter:blur(8px);
+      border:1px solid rgba(229,231,235,.9);
+      border-radius:28px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .form-card{
+      padding:26px;
+    }
+    .form-card__head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:18px;
+      margin-bottom:18px;
+    }
+    .form-card__title{
+      margin:0;
+      font-size:26px;
+      letter-spacing:-.04em;
+      line-height:1.1;
+    }
+    .form-card__desc{
+      margin:8px 0 0;
+      color:var(--muted);
+      line-height:1.6;
+      font-size:14px;
+      max-width:780px;
+    }
+
+    .stepper{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:190px;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+    }
+    .stepper__label{
+      font-size:13px;
+      color:var(--muted);
+      white-space:nowrap;
+    }
+    .stepper__dots{
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .dot{
+      width:10px;height:10px;border-radius:999px;
+      background:#dbe1ea;
+      transition:.2s ease;
+    }
+    .dot.is-active{background:var(--accent); transform:scale(1.15)}
+    .dot.is-done{background:var(--green)}
+
+    .progress{
+      height:10px;
+      background:#eef2f7;
+      border-radius:999px;
+      overflow:hidden;
+      margin:18px 0 10px;
+      border:1px solid #e8edf4;
+    }
+    .progress__bar{
+      height:100%;
+      width:33.33%;
+      background:linear-gradient(90deg,var(--accent),var(--accent-2));
+      border-radius:999px;
+      transition:width .35s ease;
+    }
+
+    .form-alert{
+      display:none;
+      margin:14px 0 18px;
+      padding:14px 16px;
+      border-radius:16px;
+      background:var(--red-soft);
+      border:1px solid rgba(239,68,68,.16);
+      color:#991b1b;
+      font-size:14px;
+      line-height:1.5;
+    }
+    .form-alert.is-visible{display:block}
+
+    .form-step{display:none}
+    .form-step.is-active{display:block}
+    .step-title{
+      margin:10px 0 6px;
+      font-size:20px;
+      line-height:1.2;
+      letter-spacing:-.03em;
+    }
+    .step-subtitle{
+      margin:0 0 18px;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.6;
+    }
+
+    .grid-2{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:14px;
+    }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      margin-bottom:14px;
+    }
+    .field--full{grid-column:1 / -1}
+    .field__label{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      font-size:14px;
+      font-weight:700;
+    }
+    .req{
+      color:var(--accent);
+      font-weight:800;
+      font-size:12px;
+      letter-spacing:.08em;
+    }
+    .helper{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:500;
+    }
+
+    .input,
+    .select,
+    .textarea{
+      width:100%;
+      border:1px solid var(--line-2);
+      border-radius:16px;
+      padding:14px 16px;
+      background:#fff;
+      color:var(--text);
+      outline:none;
+      transition:.18s ease;
+      box-shadow:0 1px 0 rgba(17,24,39,.02);
+    }
+    .textarea{
+      min-height:124px;
+      resize:vertical;
+      line-height:1.6;
+    }
+    .input:focus,
+    .select:focus,
+    .textarea:focus{
+      border-color:rgba(255,107,53,.55);
+      box-shadow:0 0 0 4px rgba(255,107,53,.10);
+    }
+    .field.is-invalid .input,
+    .field.is-invalid .select,
+    .field.is-invalid .textarea{
+      border-color:rgba(239,68,68,.65);
+      box-shadow:0 0 0 4px rgba(239,68,68,.08);
+    }
+    .field-error{
+      min-height:16px;
+      font-size:12px;
+      color:#b91c1c;
+      line-height:1.4;
+    }
+
+    .option-group{
+      display:grid;
+      gap:10px;
+    }
+    .option-grid--checks{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .option-grid--clients{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .option-grid--open{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .option{
+      position:relative;
+      display:block;
+      cursor:pointer;
+    }
+    .option input{
+      position:absolute;
+      opacity:0;
+      pointer-events:none;
+    }
+    .option span{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:48px;
+      text-align:center;
+      padding:12px 14px;
+      border-radius:16px;
+      border:1px solid var(--line-2);
+      background:#fff;
+      color:var(--text);
+      transition:.18s ease;
+      font-size:13px;
+      font-weight:600;
+      line-height:1.25;
+      box-shadow:0 1px 0 rgba(17,24,39,.02);
+    }
+    .option:hover span{
+      transform:translateY(-1px);
+      border-color:#cfd6df;
+      box-shadow:0 12px 24px rgba(17,24,39,.05);
+    }
+    .option input:checked + span{
+      border-color:rgba(255,107,53,.65);
+      background:var(--accent-soft);
+      color:#9a3412;
+      box-shadow:0 0 0 4px rgba(255,107,53,.10);
+    }
+
+    .textarea-note{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.5;
+      margin-top:-4px;
+    }
+
+    .upload{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:14px 16px;
+      border-radius:16px;
+      border:1px dashed #cfd6df;
+      background:#fff;
+      transition:.18s ease;
+    }
+    .upload:hover{
+      border-color:rgba(255,107,53,.5);
+      background:#fff8f4;
+    }
+    .upload__icon{
+      width:42px;height:42px;border-radius:14px;
+      display:grid;place-items:center;
+      background:var(--accent-soft);
+      color:var(--accent);
+      font-size:20px;
+      flex:none;
+    }
+    .upload__text{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      min-width:0;
+    }
+    .upload__text b{font-size:14px}
+    .upload__text span{
+      font-size:12px;
+      color:var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:100%;
+    }
+
+    .actions{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      margin-top:18px;
+      padding-top:18px;
+      border-top:1px solid rgba(229,231,235,.9);
+      flex-wrap:wrap;
+    }
+    .btn-row{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .btn{
+      border:none;
+      cursor:pointer;
+      border-radius:16px;
+      padding:14px 18px;
+      font-weight:800;
+      font-size:14px;
+      transition:.18s ease;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      min-height:48px;
+    }
+    .btn:hover{transform:translateY(-1px)}
+    .btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+    .btn--primary{
+      color:#fff;
+      background:linear-gradient(135deg,var(--accent),var(--accent-2));
+      box-shadow:0 12px 28px rgba(255,107,53,.24);
+    }
+    .btn--secondary{
+      background:#fff;
+      color:var(--text);
+      border:1px solid var(--line-2);
+    }
+    .btn--ghost{
+      background:transparent;
+      color:var(--muted);
+      border:1px solid transparent;
+      padding-inline:12px;
+      min-height:40px;
+    }
+    .btn--ghost:hover{
+      background:#fff;
+      border-color:var(--line);
+    }
+
+    .sidebar{
+      position:sticky;
+      top:88px;
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
+
+    .panel{
+      padding:22px;
+      background:rgba(255,255,255,.90);
+      border:1px solid rgba(229,231,235,.9);
+      border-radius:28px;
+      box-shadow:var(--shadow);
+    }
+    .panel__head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      margin-bottom:16px;
+    }
+    .panel__title{
+      margin:2px 0 0;
+      font-size:20px;
+      letter-spacing:-.03em;
+      line-height:1.15;
+    }
+    .panel__desc{
+      margin:8px 0 0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.6;
+    }
+
+    .rule-chip{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:16px;
+      padding:12px 14px;
+      font-size:13px;
+      color:#374151;
+      line-height:1.45;
+      margin-top:10px;
+    }
+    .rule-chip b{color:var(--text)}
+    .rule-chip--accent{
+      background:var(--accent-soft);
+      border-color:rgba(255,107,53,.14);
+    }
+
+    .result-launcher{
+      padding:22px;
+      background:linear-gradient(135deg, #ffffff, #fff8f4);
+      border:1px solid rgba(255,107,53,.16);
+      border-radius:28px;
+      box-shadow:var(--shadow);
+      display:grid;
+      gap:12px;
+    }
+    .result-launcher__label{
+      font-size:12px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      font-weight:800;
+      color:var(--accent);
+    }
+    .result-launcher__title{
+      font-size:20px;
+      line-height:1.15;
+      letter-spacing:-.03em;
+      margin:0;
+    }
+    .result-launcher__summary{
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.6;
+      margin:0;
+    }
+    .result-launcher__score{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      width:max-content;
+      padding:10px 14px;
+      border-radius:999px;
+      background:var(--accent-soft);
+      color:#9a3412;
+      font-weight:900;
+      font-size:13px;
+    }
+    .result-launcher__actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-top:4px;
+    }
+    .result-launcher__thanks{
+      display:none;
+      padding:14px 16px;
+      border-radius:16px;
+      background:var(--green-soft);
+      border:1px solid rgba(22,163,74,.16);
+      color:#166534;
+      font-size:14px;
+      line-height:1.55;
+      font-weight:600;
+    }
+    .result-launcher__thanks.is-visible{display:block}
+
+    .footer{
+      margin-top:18px;
+      color:var(--muted);
+      font-size:12px;
+      text-align:center;
+      padding:10px 0 0;
+    }
+
+    .shake{animation:shake .28s linear 0s 2}
+    @keyframes shake{
+      0%,100%{transform:translateX(0)}
+      25%{transform:translateX(-4px)}
+      75%{transform:translateX(4px)}
+    }
+
+    @media (max-width: 1080px){
+      .page-head,
+      .layout{grid-template-columns:1fr}
+      .sidebar{position:static}
+    }
+
+    @media (max-width: 820px){
+      .topbar__inner{padding-inline:16px}
+      .shell{padding-inline:16px}
+      .form-card{padding:18px}
+      .panel{padding:18px}
+      .grid-2,
+      .option-grid--checks,
+      .option-grid--clients,
+      .option-grid--open,
+      .result-launcher__actions{
+        grid-template-columns:1fr;
+      }
+      .topbar__chip{display:none}
+      .actions{flex-direction:column}
+      .btn-row{width:100%}
+      .btn{width:100%}
+      .brand__sub{max-width:60vw}
+    }
+
+    @media (max-width: 520px){
+      .hero-card{padding:22px}
+      .form-card__title{font-size:22px}
+      .panel__title{font-size:18px}
+      .result-launcher__title{font-size:18px}
+    }
+  </style>
+</head>
+<body>
+  <div class="blob blob--1"></div>
+  <div class="blob blob--2"></div>
+  <div class="blob blob--3"></div>
+
+  <header class="topbar">
+    <div class="topbar__inner">
+      <div class="brand">
+        <div class="brand__mark">6</div>
+        <div>
+          <div class="brand__name">6S</div>
+          <div class="brand__sub">Форма для команды</div>
+        </div>
+      </div>
+      <div class="topbar__chip">Автогрейд после отправки</div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="page-head">
+      <div class="hero-card">
+        <div class="eyebrow">Присоединяйтесь к команде</div>
+        <h1>Интерактивная форма</h1>
+        <p>
+          Мы просим заполнить эту форму — это наш способ понять, насколько мы совпадаем.
+          Заполнение будет значить: «Я хочу быть частью команды».
+        </p>
+      </div>
+    </section>
+
+    <div class="layout">
+      <section class="card form-card">
+        <div class="form-card__head">
+          <div>
+            <div class="eyebrow">Форма для команды</div>
+            <h2 class="form-card__title">Заполните форму, чтобы присоединиться к команде</h2>
+            <p class="form-card__desc">
+              Если у вас нет портфолио или кейсов, оставьте поля пустыми — это не страшно.
+              Иногда гораздо важнее быть честными, чем придумывать опыт, которого пока что нет.
+            </p>
+          </div>
+
+          <div class="stepper">
+            <div class="stepper__label" id="stepCounter">Шаг 1 / 3</div>
+            <div class="stepper__dots" aria-hidden="true">
+              <span class="dot is-active" data-dot="1"></span>
+              <span class="dot" data-dot="2"></span>
+              <span class="dot" data-dot="3"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="progress"><div class="progress__bar" id="progressBar"></div></div>
+
+        <div class="form-alert" id="formAlert"></div>
+
+        <form id="contractorForm" novalidate>
+          <div class="form-step is-active" data-step="1">
+            <div class="step-title">Блок 1. Контактные данные</div>
+            <p class="step-subtitle">Пожалуйста, укажите базовую контактную информацию для связи.</p>
+
+            <div class="grid-2">
+              <div class="field field--full" data-field="fullName">
+                <div class="field__label">
+                  <span>ФИО</span><span class="req">*</span>
+                </div>
+                <input class="input" id="fullName" name="fullName" type="text" placeholder="Иванов Иван Иванович" />
+                <div class="field-error"></div>
+              </div>
+
+              <div class="field" data-field="telegram">
+                <div class="field__label">
+                  <span>Telegram</span><span class="req">*</span>
+                </div>
+                <input class="input" id="telegram" name="telegram" type="text" placeholder="@username" />
+                <div class="field-error"></div>
+              </div>
+
+              <div class="field" data-field="phone">
+                <div class="field__label">
+                  <span>Телефон</span><span class="req">*</span>
+                </div>
+                <input class="input" id="phone" name="phone" type="tel" placeholder="+7 (999) 123-45-67" />
+                <div class="field-error"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-step" data-step="2">
+            <div class="step-title">Блок 2. Профиль, опыт и зона ответственности</div>
+            <p class="step-subtitle">Укажите специализацию, опыт и то, за что вы отвечаете в проектах.</p>
+
+            <div class="grid-2">
+              <div class="field" data-field="specialization">
+                <div class="field__label">
+                  <span>Основная специализация</span><span class="req">*</span>
+                </div>
+                <select class="select" id="specialization" name="specialization">
+                  <option value="">Выберите специализацию</option>
+                  <option>Таргетированная реклама</option>
+                  <option>Контекстная реклама</option>
+                  <option>Инфлюенс-маркетинг</option>
+                  <option>CRM / удержание</option>
+                  <option>SEO</option>
+                  <option>Контент-маркетинг</option>
+                  <option>Копирайтинг</option>
+                  <option>Брендинг</option>
+                  <option>Айдентика и дизайн</option>
+                  <option>Креативная стратегия</option>
+                  <option>UX/UI дизайн</option>
+                  <option>Web-разработка</option>
+                  <option>No-code разработка</option>
+                  <option>Аналитика и BI</option>
+                  <option>Исследования рынка</option>
+                  <option>Видео-продакшен</option>
+                  <option>PR и коммуникации</option>
+                  <option>Growth маркетинг</option>
+                  <option>Маркетинговая стратегия</option>
+                </select>
+                <div class="field-error"></div>
+              </div>
+
+              <div class="field" data-field="experienceYears">
+                <div class="field__label">
+                  <span>Опыт, лет</span><span class="req">*</span>
+                </div>
+                <input class="input" id="experienceYears" name="experienceYears" type="number" min="0" step="0.5" placeholder="Например, 5" />
+                <div class="field-error"></div>
+                <div class="helper">Можно ввести 0, если опыта нет. <b>0–0.9</b> будет считаться как &lt;1 года.</div>
+              </div>
+
+              <div class="field" data-field="role">
+                <div class="field__label">
+                  <span>Роль в проектах</span><span class="req">*</span>
+                </div>
+                <select class="select" id="role" name="role">
+                  <option value="">Выберите роль</option>
+                  <option value="junior">Младший специалист</option>
+                  <option value="specialist">Специалист</option>
+                  <option value="senior">Старший специалист</option>
+                  <option value="project">Руководитель проекта</option>
+                  <option value="unit">Руководитель юнита</option>
+                </select>
+                <div class="field-error"></div>
+              </div>
+
+              <div class="field" data-field="clients">
+                <div class="field__label">
+                  <span>С какими заказчиками чаще всего работали?</span><span class="req">*</span>
+                </div>
+                <div class="option-group option-grid option-grid--clients">
+                  <label class="option">
+                    <input type="radio" name="clients" value="small" />
+                    <span>Малый бизнес</span>
+                  </label>
+                  <label class="option">
+                    <input type="radio" name="clients" value="mid" />
+                    <span>Средний бизнес</span>
+                  </label>
+                  <label class="option">
+                    <input type="radio" name="clients" value="large" />
+                    <span>Крупные компании</span>
+                  </label>
+                  <label class="option">
+                    <input type="radio" name="clients" value="international" />
+                    <span>Международные бренды</span>
+                  </label>
+                </div>
+                <div class="field-error"></div>
+              </div>
+
+              <div class="field field--full" data-field="responsibilities">
+                <div class="field__label">
+                  <span>Уровень ответственности</span>
+                  <span class="helper">можно выбрать несколько</span>
+                </div>
+                <div class="option-group option-grid option-grid--checks">
+                  <label class="option">
+                    <input type="checkbox" name="responsibility" value="strategy" />
+                    <span>Стратегическое развитие</span>
+                  </label>
+                  <label class="option">
+                    <input type="checkbox" name="responsibility" value="budget" />
+                    <span>Бюджет и ресурсы</span>
+                  </label>
+                  <label class="option">
+                    <input type="checkbox" name="responsibility" value="kpi" />
+                    <span>Итоговый результат (KPI)</span>
+                  </label>
+                  <label class="option">
+                    <input type="checkbox" name="responsibility" value="client" />
+                    <span>Клиентский сервис</span>
+                  </label>
+                  <label class="option">
+                    <input type="checkbox" name="responsibility" value="operations" />
+                    <span>Реализация проекта (операционная работа)</span>
+                  </label>
+                  <label class="option">
+                    <input type="checkbox" name="responsibility" value="team" />
+                    <span>Управление командой</span>
+                  </label>
+                </div>
+                <div class="field-error"></div>
+              </div>
+
+              <div class="field field--full" data-field="openEnded">
+                <div class="field__label">
+                  <span>Берётесь за open-ended задачи?</span>
+                  <span class="helper">для скоринга добавлен вариант «Иногда»</span>
+                </div>
+                <div class="option-group option-grid option-grid--open">
+                  <label class="option">
+                    <input type="radio" name="openEnded" value="no" />
+                    <span>Нет</span>
+                  </label>
+                  <label class="option">
+                    <input type="radio" name="openEnded" value="sometimes" />
+                    <span>Иногда</span>
+                  </label>
+                  <label class="option">
+                    <input type="radio" name="openEnded" value="yes" />
+                    <span>Да</span>
+                  </label>
+                </div>
+                <div class="field-error"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-step" data-step="3">
+            <div class="step-title">Блок 3. Коммерция и доказательная база</div>
+            <p class="step-subtitle">Заполните стоимость, кейсы и ссылку на портфолио. Резюме можно прикрепить PDF-файлом.</p>
+
+            <div class="grid-2">
+              <div class="field" data-field="costEstimate">
+                <div class="field__label">
+                  <span>Укажите примерную стоимость вашей работы</span><span class="req">*</span>
+                </div>
+                <input class="input" id="costEstimate" name="costEstimate" type="text" placeholder="Например, 150 000 ₽ / месяц или 70 000 ₽ / проект" />
+                <div class="field-error"></div>
+              </div>
+
+              <div class="field" data-field="mainProfile">
+                <div class="field__label">
+                  <span>Основной профиль работы</span><span class="req">*</span>
+                </div>
+                <input class="input" id="mainProfile" name="mainProfile" type="text" placeholder="FMCG, e-com, SaaS, B2B и т.д." />
+                <div class="field-error"></div>
+              </div>
+
+              <div class="field field--full" data-field="cases">
+                <div class="field__label">
+                  <span>Опишите ваш опыт и кейсы</span>
+                  <span class="helper">можно оставить пустым — тогда система ограничит грейд</span>
+                </div>
+                <textarea class="textarea" id="cases" name="cases" placeholder="Расскажите 2–3 кейса: что делали, какой KPI был, какой результат получили, с какими клиентами работали..."></textarea>
+                <div class="field-error"></div>
+                <div class="textarea-note">Чем больше цифр, метрик и конкретики, тем выше доказательная база.</div>
+              </div>
+
+              <div class="field field--full" data-field="portfolioUrl">
+                <div class="field__label">
+                  <span>Портфолио</span>
+                  <span class="helper">оставьте пустым, если ссылки пока нет — грейд снизится автоматически</span>
+                </div>
+                <input class="input" id="portfolioUrl" name="portfolioUrl" type="text" placeholder="https://behance.net/..., https://notion.so/..., https://ваш-сайт.ru/" />
+                <div class="field-error"></div>
+              </div>
+
+              <div class="field field--full" data-field="resume">
+                <div class="field__label">
+                  <span>Резюме (PDF)</span>
+                  <span class="helper">необязательно</span>
+                </div>
+                <label class="upload" for="resume">
+                  <div class="upload__icon">📄</div>
+                  <div class="upload__text">
+                    <b>Загрузить PDF</b>
+                    <span id="resumeName">Файл не выбран</span>
+                  </div>
+                </label>
+                <input id="resume" name="resume" type="file" accept=".pdf,application/pdf" hidden />
+                <div class="field-error"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <div class="btn-row">
+              <button class="btn btn--secondary" type="button" id="prevBtn" disabled>← Назад</button>
+              <button class="btn btn--secondary" type="button" id="resetBtn">Сбросить</button>
+            </div>
+
+            <div class="btn-row">
+              <button class="btn btn--primary" type="button" id="nextBtn">Далее →</button>
+              <button class="btn btn--primary" type="submit" id="submitBtn" style="display:none;">Отправить</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <aside class="sidebar">
+        <div class="panel">
+          <div class="panel__head">
+            <div>
+              <div class="eyebrow" style="margin-bottom:8px;">Ваша заявка</div>
+              <h3 class="panel__title">После отправки формы мы свяжемся с вами</h3>
+              <p class="panel__desc">
+                Заполните форму и нажмите «Отправить». Мы рассмотрим вашу заявку и свяжемся с вами.
+                После заполнения форма автоматически посчитает ваш грейд. Если вы не согласны с итогом —
+                подсветите это менеджеру, и это поможет задать уточняющие вопросы.
+              </p>
+            </div>
+          </div>
+
+          <div class="rule-chip rule-chip--accent">
+            <b>Автогрейд:</b> результат считается после отправки формы
+          </div>
+          <div class="rule-chip">
+            <b>Если вы не согласны с итогом</b> — менеджер сможет задать уточняющие вопросы и перепроверить вводные
+          </div>
+        </div>
+
+        <div class="result-launcher" id="resultLauncher" hidden>
+          <div class="result-launcher__label">Итог анкеты</div>
+          <h3 class="result-launcher__title" id="resultLauncherTitle">—</h3>
+          <p class="result-launcher__summary" id="resultLauncherSummary">
+            Итог заполнения появится после отправки формы.
+          </p>
+          <div class="result-launcher__score" id="resultLauncherScore">— /100</div>
+
+          <div class="result-launcher__actions" id="resultLauncherActions">
+            <button class="btn btn--primary" type="button" id="agreeGradeBtn">Я согласен с грейдом</button>
+            <button class="btn btn--secondary" type="button" id="disagreeGradeBtn">Я не согласен</button>
+          </div>
+
+          <div class="result-launcher__thanks" id="resultLauncherThanks">
+            Спасибо, ваша анкета отправлена. В случае, если ваш опыт покажется нам релевантным — с вами свяжется ответственный менеджер
+          </div>
+        </div>
+
+        <div class="footer">© 2025 6S · Contractor grading form</div>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    const $ = (s, root = document) => root.querySelector(s);
+    const $$ = (s, root = document) => [...root.querySelectorAll(s)];
+    const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+
+    const grades = ["Junior", "Middle", "Senior", "Executive", "C-level"];
+    const gradeUpper = [30, 50, 70, 85, 100];
+
+    const roleScore = {
+      junior: 4,
+      specialist: 8,
+      senior: 12,
+      project: 16,
+      unit: 20
+    };
+
+    const clientScore = {
+      small: 5,
+      mid: 8,
+      large: 12,
+      international: 15
+    };
+
+    const openEndedScore = {
+      no: 0,
+      sometimes: 5,
+      yes: 10
+    };
+
+    const responsibilityWeights = {
+      operations: 5,
+      client: 5,
+      kpi: 7,
+      budget: 10,
+      team: 12,
+      strategy: 15
+    };
+
+    const strongPortfolioDomains = /(behance|dribbble|notion|figma|vimeo|youtube|youtu\.be|drive\.google|docs\.google|readymag|tilda|wix|github|gitlab|adobe|pdf|miro|canva|portfolio|case)/i;
+
+    const form = $("#contractorForm");
+    const formAlert = $("#formAlert");
+    const formSteps = $$(".form-step");
+    const progressBar = $("#progressBar");
+    const stepCounter = $("#stepCounter");
+    const stepDots = $$(".dot");
+    const prevBtn = $("#prevBtn");
+    const nextBtn = $("#nextBtn");
+    const submitBtn = $("#submitBtn");
+    const resetBtn = $("#resetBtn");
+    const resumeInput = $("#resume");
+    const resumeName = $("#resumeName");
+
+    const resultLauncher = $("#resultLauncher");
+    const resultLauncherTitle = $("#resultLauncherTitle");
+    const resultLauncherSummary = $("#resultLauncherSummary");
+    const resultLauncherScore = $("#resultLauncherScore");
+    const resultLauncherActions = $("#resultLauncherActions");
+    const resultLauncherThanks = $("#resultLauncherThanks");
+    const agreeGradeBtn = $("#agreeGradeBtn");
+    const disagreeGradeBtn = $("#disagreeGradeBtn");
+
+    let currentStep = 1;
+    let lastResult = null;
+    let toastTimer;
+
+    const toast = document.createElement("div");
+    toast.style.cssText = `
+      position:fixed;left:50%;top:18px;transform:translateX(-50%) translateY(-120px);
+      background:rgba(17,24,39,.96);color:#fff;padding:12px 16px;border-radius:999px;
+      z-index:9999;font-size:13px;font-weight:700;box-shadow:0 14px 40px rgba(0,0,0,.18);
+      transition:transform .35s cubic-bezier(.175,.885,.32,1.275);pointer-events:none;white-space:nowrap;
+    `;
+    document.body.appendChild(toast);
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.style.transform = "translateX(-50%) translateY(0)";
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.style.transform = "translateX(-50%) translateY(-120px)";
+      }, 2200);
+    }
+
+    function setFieldError(fieldName, message) {
+      const field = $(`[data-field="${fieldName}"]`);
+      if (!field) return;
+      field.classList.add("is-invalid");
+      const err = $(".field-error", field);
+      if (err) err.textContent = message || "";
+    }
+
+    function clearAllFieldErrors() {
+      $$("[data-field]").forEach(field => {
+        field.classList.remove("is-invalid");
+        const err = $(".field-error", field);
+        if (err) err.textContent = "";
+      });
+      formAlert.classList.remove("is-visible");
+      formAlert.textContent = "";
+    }
+
+    function showFormAlert(message) {
+      formAlert.textContent = message;
+      formAlert.classList.add("is-visible");
+    }
+
+    function shakeCard() {
+      const card = $(".form-card");
+      card.classList.remove("shake");
+      void card.offsetWidth;
+      card.classList.add("shake");
+    }
+
+    function renderStepper() {
+      stepCounter.textContent = `Шаг ${currentStep} / 3`;
+      progressBar.style.width = `${(currentStep / 3) * 100}%`;
+
+      formSteps.forEach(step => {
+        step.classList.toggle("is-active", Number(step.dataset.step) === currentStep);
+      });
+
+      stepDots.forEach(dot => {
+        const n = Number(dot.dataset.dot);
+        dot.classList.toggle("is-active", n === currentStep);
+        dot.classList.toggle("is-done", n < currentStep);
+      });
+
+      prevBtn.disabled = currentStep === 1;
+      nextBtn.style.display = currentStep < 3 ? "inline-flex" : "none";
+      submitBtn.style.display = currentStep === 3 ? "inline-flex" : "none";
+    }
+
+    function goToStep(step) {
+      currentStep = clamp(step, 1, 3);
+      clearAllFieldErrors();
+      renderStepper();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function normalizeTelegram(value) {
+      const v = value.trim().replace(/\s+/g, "");
+      if (!v) return "";
+      return v.startsWith("@") ? v : "@" + v.replace(/^@+/, "");
+    }
+
+    function normalizeUrl(value) {
+      const raw = value.trim();
+      if (!raw) return "";
+      const withProtocol = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+      try {
+        return new URL(withProtocol).href;
+      } catch {
+        return "";
+      }
+    }
+
+    function isValidTelegram(value) {
+      return /^@[A-Za-z0-9_]{5,32}$/.test(value);
+    }
+
+    function isValidPhone(value) {
+      const digits = (value || "").replace(/\D/g, "");
+      return digits.length >= 10;
+    }
+
+    function calculateExperienceScore(years) {
+      if (Number.isNaN(years) || years < 0) return 0;
+      if (years < 1) return 3;
+      if (years <= 2) return 7;
+      if (years <= 4) return 12;
+      if (years <= 7) return 16;
+      return 20;
+    }
+
+    function calculateRoleScore(role) {
+      return roleScore[role] || 0;
+    }
+
+    function calculateResponsibilityScore(items) {
+      const raw = items.reduce((sum, item) => sum + (responsibilityWeights[item] || 0), 0);
+      const normalized = raw === 0 ? 0 : Math.round((raw / 54) * 25);
+      return { raw, normalized: clamp(normalized, 0, 25) };
+    }
+
+    function calculateClientScore(client) {
+      return clientScore[client] || 0;
+    }
+
+    function calculateOpenEndedScore(value) {
+      return openEndedScore[value] || 0;
+    }
+
+    function scoreCases(text) {
+      const t = (text || "").trim();
+      if (!t) return 0;
+
+      const len = t.length;
+      const metricMatches = t.match(/(\d+[.,]?\d*\s?%|\d+[.,]?\d*\s?(?:₽|руб|rub|k|млн|тыс)|\b(kpi|roi|romi|cpa|cpl|ctr|cr|cac|ltv|retention|охват|лид[ы]?|продаж[аи]?|конверси[яи]?|рост|заявк[аи]?|выручк[аи]?)\b)/gi) || [];
+      const metricCount = metricMatches.length;
+
+      if (metricCount >= 2 && len > 120) return 10;
+      if (metricCount >= 1 || len > 100) return 7;
+      if (len >= 30) return 3;
+      return 0;
+    }
+
+    function assessPortfolio(url) {
+      const raw = (url || "").trim();
+      if (!raw) {
+        return { present: false, score: 0, normalized: "", valid: true };
+      }
+      const normalized = normalizeUrl(raw);
+      if (!normalized) {
+        return { present: true, score: 0, normalized: "", valid: false };
+      }
+      const strong = strongPortfolioDomains.test(normalized);
+      return { present: true, score: strong ? 10 : 5, normalized, valid: true };
+    }
+
+    function calculateBonus(role, responsibilities, client) {
+      let bonus = 0;
+      const reasons = [];
+
+      if (role === "project" && responsibilities.includes("kpi")) {
+        bonus += 5;
+        reasons.push("Руководитель проекта + KPI");
+      }
+      if (role === "unit" && responsibilities.includes("strategy")) {
+        bonus += 10;
+        reasons.push("Руководитель юнита + стратегия");
+      }
+      if (responsibilities.includes("budget") && responsibilities.includes("team")) {
+        bonus += 7;
+        reasons.push("Бюджет + команда");
+      }
+      if (client === "international" && responsibilities.includes("strategy")) {
+        bonus += 7;
+        reasons.push("Международные клиенты + стратегия");
+      }
+
+      return { bonus: Math.min(10, bonus), reasons };
+    }
+
+    function gradeIndexFromScore(score) {
+      if (score <= 30) return 0;
+      if (score <= 50) return 1;
+      if (score <= 70) return 2;
+      if (score <= 85) return 3;
+      return 4;
+    }
+
+    function buildReasoning(data, breakdown, bonusReasons, limitations, grade) {
+      const positives = [];
+
+      if (breakdown.experience >= 16) positives.push(`опыт ${data.experienceYears}+ лет`);
+      else if (breakdown.experience >= 12) positives.push(`опыт ${data.experienceYears}+ года`);
+      else if (breakdown.experience >= 7) positives.push(`опыт ${data.experienceYears}+ лет на уровне уверенного специалиста`);
+
+      if (breakdown.role >= 16) positives.push("уровень руководителя проекта");
+      else if (breakdown.role >= 12) positives.push("уровень старшего специалиста");
+
+      if (data.responsibilities.includes("kpi") || data.responsibilities.includes("strategy") || data.responsibilities.includes("budget") || data.responsibilities.includes("team")) {
+        positives.push("высокая зона ответственности");
+      }
+
+      if (breakdown.clients >= 12) positives.push("работа с крупными и международными клиентами");
+      if (breakdown.evidence >= 14) positives.push("кейсы с метриками и портфолио");
+      if (bonusReasons.length) positives.push(`сильные сочетания: ${bonusReasons.join(", ")}`);
+
+      let text = positives.length
+        ? `Ключевые драйверы: ${positives.slice(0, 3).join(", ")}.`
+        : `Сильных подтверждений уровня недостаточно для уверенного роста выше базового диапазона.`;
+
+      if (limitations.length) {
+        text += ` Ограничения: ${limitations.slice(0, 3).join("; ")}.`;
+      }
+
+      if (grade === "Junior" && !limitations.length) {
+        text += " Итог ограничен нижним диапазоном из-за слабой доказательной базы.";
+      }
+
+      return text;
+    }
+
+    function collectData() {
+      const responsibilities = $$('input[name="responsibility"]:checked').map(el => el.value);
+      const experienceYears = parseFloat($("#experienceYears").value);
+      const role = $("#role").value;
+      const clients = $('input[name="clients"]:checked')?.value || "";
+      const openEnded = $('input[name="openEnded"]:checked')?.value || "";
+      const specialization = $("#specialization").value.trim();
+      const costEstimate = $("#costEstimate").value.trim();
+      const cases = $("#cases").value.trim();
+      const portfolioRaw = $("#portfolioUrl").value.trim();
+      const profile = $("#mainProfile").value.trim();
+
+      const portfolio = assessPortfolio(portfolioRaw);
+      return {
+        fullName: $("#fullName").value.trim(),
+        telegram: normalizeTelegram($("#telegram").value),
+        phone: $("#phone").value.trim(),
+        specialization,
+        experienceYears,
+        role,
+        responsibilities,
+        openEnded,
+        clients,
+        costEstimate,
+        cases,
+        portfolioRaw,
+        portfolio,
+        profile,
+        resumeName: resumeInput.files?.[0]?.name || ""
+      };
+    }
+
+    function calculateResult(data) {
+      const experience = calculateExperienceScore(data.experienceYears);
+      const role = calculateRoleScore(data.role);
+      const responsibility = calculateResponsibilityScore(data.responsibilities);
+      const clients = calculateClientScore(data.clients);
+      const open_ended = calculateOpenEndedScore(data.openEnded);
+      const cases = scoreCases(data.cases);
+      const portfolioScore = data.portfolio.valid ? data.portfolio.score : 0;
+      const evidence = clamp(cases + portfolioScore, 0, 20);
+
+      const bonusObj = calculateBonus(data.role, data.responsibilities, data.clients);
+      const bonus = bonusObj.bonus;
+
+      const portfolioPenalty = data.portfolio.present && !data.portfolio.valid ? 5 : 0;
+      const rawTotal = experience + role + responsibility.normalized + clients + open_ended + evidence + bonus - portfolioPenalty;
+      const baseScore = clamp(Math.round((rawTotal / 120) * 100), 0, 100);
+
+      const limitations = [];
+      let maxGradeIndex = 4;
+
+      if (data.experienceYears <= 0) {
+        maxGradeIndex = Math.min(maxGradeIndex, 0);
+        limitations.push("Нет опыта → максимум Junior");
+      }
+
+      if (cases === 0) {
+        maxGradeIndex = Math.min(maxGradeIndex, 1);
+        limitations.push("Нет кейсов → максимум Middle");
+      }
+
+      if (data.clients === "small") {
+        maxGradeIndex = Math.min(maxGradeIndex, 1);
+        limitations.push("Только малый бизнес → максимум Middle");
+      }
+
+      if (!(data.responsibilities.includes("kpi") || data.responsibilities.includes("strategy"))) {
+        maxGradeIndex = Math.min(maxGradeIndex, 2);
+        limitations.push("Нет ответственности за KPI/стратегию → максимум Senior");
+      }
+
+      if (!data.portfolio.present) {
+        maxGradeIndex = Math.max(0, maxGradeIndex - 1);
+        limitations.push("Нет портфолио → -1 уровень грейда");
+        limitations.push("Нет портфолио → -5 к итоговому баллу");
+      } else if (!data.portfolio.valid) {
+        limitations.push("Портфолио-ссылка некорректна → не засчитана");
+      }
+
+      const baseGradeIndex = gradeIndexFromScore(baseScore);
+      const finalGradeIndex = Math.min(baseGradeIndex, maxGradeIndex);
+      const finalGrade = grades[finalGradeIndex];
+      const finalScore = Math.min(baseScore, gradeUpper[finalGradeIndex]);
+
+      const uniqueLimitations = [...new Set(limitations)];
+      if (!uniqueLimitations.length) uniqueLimitations.push("Ограничения не применялись");
+
+      const reasoning = buildReasoning(
+        data,
+        { experience, role, responsibility: responsibility.normalized, clients, evidence },
+        bonusObj.reasons,
+        uniqueLimitations.filter(x => x !== "Ограничения не применялись"),
+        finalGrade
+      );
+
+      return {
+        grade: finalGrade,
+        score: finalScore,
+        subscores: {
+          experience,
+          role,
+          responsibility: responsibility.normalized,
+          clients,
+          open_ended,
+          evidence
+        },
+        reasoning,
+        limitations_applied: uniqueLimitations.filter(x => x !== "Ограничения не применялись")
+      };
+    }
+
+    function validateStep(step) {
+      clearAllFieldErrors();
+      let firstInvalid = null;
+      let ok = true;
+
+      function fail(fieldName, message) {
+        ok = false;
+        setFieldError(fieldName, message);
+        if (!firstInvalid) {
+          firstInvalid = $(`[data-field="${fieldName}"] .input, [data-field="${fieldName}"] .select, [data-field="${fieldName}"] .textarea, [data-field="${fieldName}"] input`);
+        }
+      }
+
+      const fullName = $("#fullName").value.trim();
+      const telegram = normalizeTelegram($("#telegram").value);
+      const phone = $("#phone").value.trim();
+
+      if (step === 1) {
+        if (fullName.length < 3) fail("fullName", "Укажите ФИО.");
+        if (!telegram || !isValidTelegram(telegram)) fail("telegram", "Telegram должен быть в формате @username.");
+        if (!isValidPhone(phone)) fail("phone", "Укажите корректный телефон.");
+      }
+
+      const specialization = $("#specialization").value;
+      const experienceYears = parseFloat($("#experienceYears").value);
+      const role = $("#role").value;
+      const clients = $('input[name="clients"]:checked');
+      const openEnded = $('input[name="openEnded"]:checked');
+
+      if (step === 2) {
+        if (!specialization) fail("specialization", "Выберите специализацию.");
+        if (Number.isNaN(experienceYears) || experienceYears < 0) fail("experienceYears", "Укажите опыт в годах (можно 0).");
+        if (!role) fail("role", "Выберите роль в проектах.");
+        if (!clients) fail("clients", "Выберите тип клиентов.");
+        if (!openEnded) fail("openEnded", "Выберите ответ.");
+      }
+
+      const costEstimate = $("#costEstimate").value.trim();
+      const mainProfile = $("#mainProfile").value.trim();
+      const portfolioRaw = $("#portfolioUrl").value.trim();
+      const portfolio = assessPortfolio(portfolioRaw);
+
+      if (step === 3) {
+        if (costEstimate.length < 2) fail("costEstimate", "Укажите примерную стоимость работы.");
+        if (mainProfile.length < 2) fail("mainProfile", "Укажите основной профиль работы.");
+        if (portfolioRaw && !portfolio.valid) fail("portfolioUrl", "Ссылка на портфолио выглядит некорректно.");
+      }
+
+      if (!ok && firstInvalid) {
+        firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
+        shakeCard();
+      }
+
+      if (ok) formAlert.classList.remove("is-visible");
+      return ok;
+    }
+
+    function validateAll() {
+      return validateStep(1) && validateStep(2) && validateStep(3);
+    }
+
+    function renderResultLauncher(result) {
+      resultLauncher.hidden = false;
+      resultLauncherTitle.textContent = `Ваш грейд: ${result.grade}`;
+      resultLauncherSummary.textContent = `Форма заполнена полностью. Итог: ${result.score}/100.`;
+      resultLauncherScore.textContent = `${result.score}/100`;
+      resultLauncherActions.style.display = "grid";
+      resultLauncherThanks.classList.remove("is-visible");
+      resultLauncher.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function showThanksInline() {
+      resultLauncherActions.style.display = "none";
+      resultLauncherThanks.classList.add("is-visible");
+      showToast("Анкета отправлена");
+    }
+
+    ["fullName","telegram","phone","specialization","experienceYears","role","costEstimate","mainProfile","portfolioUrl"].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener("input", () => {
+        const field = el.closest("[data-field]");
+        if (field) field.classList.remove("is-invalid");
+      });
+    });
+
+    $("#telegram").addEventListener("blur", e => {
+      e.target.value = normalizeTelegram(e.target.value);
+    });
+
+    $("#portfolioUrl").addEventListener("blur", e => {
+      const raw = e.target.value.trim();
+      if (!raw) return;
+      const normalized = raw.startsWith("http://") || raw.startsWith("https://") ? raw : `https://${raw}`;
+      e.target.value = normalized;
+    });
+
+    resumeInput.addEventListener("change", () => {
+      const file = resumeInput.files?.[0];
+      resumeName.textContent = file ? file.name : "Файл не выбран";
+      if (file) showToast("PDF добавлен");
+    });
+
+    prevBtn.addEventListener("click", () => {
+      if (currentStep > 1) goToStep(currentStep - 1);
+    });
+
+    nextBtn.addEventListener("click", () => {
+      if (validateStep(currentStep)) goToStep(currentStep + 1);
+    });
+
+    resetBtn.addEventListener("click", () => {
+      if (!confirm("Сбросить все поля?")) return;
+      form.reset();
+      resumeName.textContent = "Файл не выбран";
+      currentStep = 1;
+      clearAllFieldErrors();
+      lastResult = null;
+      window.__contractorResult = null;
+      resultLauncher.hidden = true;
+      resultLauncherTitle.textContent = "—";
+      resultLauncherSummary.textContent = "Итог заполнения появится после отправки формы.";
+      resultLauncherScore.textContent = "— /100";
+      resultLauncherActions.style.display = "grid";
+      resultLauncherThanks.classList.remove("is-visible");
+      goToStep(1);
+      showToast("Форма сброшена");
+    });
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      if (!validateAll()) {
+        goToStep(1);
+        showFormAlert("Проверьте поля формы — есть незаполненные или некорректные значения.");
+        return;
+      }
+
+      const data = collectData();
+      const result = calculateResult(data);
+      lastResult = result;
+      window.__contractorResult = result;
+      sessionStorage.setItem("6sense_last_result", JSON.stringify(result));
+
+      renderResultLauncher(result);
+      showToast(`Форма заполнена · ${result.grade} / ${result.score}`);
+    });
+
+    agreeGradeBtn.addEventListener("click", showThanksInline);
+    disagreeGradeBtn.addEventListener("click", showThanksInline);
+
+    renderStepper();
+    window.__contractorResult = null;
+  </script>
+</body>
+</html>
