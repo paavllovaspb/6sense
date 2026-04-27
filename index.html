@@ -559,6 +559,10 @@
       box-shadow:var(--shadow);
       display:grid;
       gap:12px;
+      display: none;
+    }
+    .result-launcher.is-visible{
+      display: grid;
     }
     .result-launcher__label{
       font-size:12px;
@@ -743,6 +747,27 @@
                 <input class="input" id="phone" name="phone" type="tel" placeholder="+7 (999) 123-45-67" />
                 <div class="field-error"></div>
               </div>
+
+              <div class="field field--full" data-field="contractorType">
+                <div class="field__label">
+                  <span>Тип подрядчика</span><span class="req">*</span>
+                </div>
+                <div class="option-group option-grid option-grid--clients">
+                  <label class="option">
+                    <input type="radio" name="contractorType" value="team" />
+                    <span>Проектная команда</span>
+                  </label>
+                  <label class="option">
+                    <input type="radio" name="contractorType" value="agency" />
+                    <span>Агенство</span>
+                  </label>
+                  <label class="option">
+                    <input type="radio" name="contractorType" value="individual" />
+                    <span>Самостоятельный специалист</span>
+                  </label>
+                </div>
+                <div class="field-error"></div>
+              </div>
             </div>
           </div>
 
@@ -765,7 +790,7 @@
                   <option>Контент-маркетинг</option>
                   <option>Копирайтинг</option>
                   <option>Брендинг</option>
-                  <option>Айдентика и дизайн</option>
+                  <option>Дизайн и айдентика</option>
                   <option>Креативная стратегия</option>
                   <option>UX/UI дизайн</option>
                   <option>Web-разработка</option>
@@ -866,7 +891,6 @@
               <div class="field field--full" data-field="openEnded">
                 <div class="field__label">
                   <span>Берётесь за open-ended задачи?</span>
-                  <span class="helper">для скоринга добавлен вариант «Иногда»</span>
                 </div>
                 <div class="option-group option-grid option-grid--open">
                   <label class="option">
@@ -882,6 +906,7 @@
                     <span>Да</span>
                   </label>
                 </div>
+                <div class="helper" style="color: var(--muted); margin-top: 8px; font-size: 13px;">Когда не до конца понятно, что нужно делать, но ты знаешь, что решение всегда найдется и готов взять на себя за это ответственность</div>
                 <div class="field-error"></div>
               </div>
             </div>
@@ -955,6 +980,12 @@
               <button class="btn btn--primary" type="button" id="nextBtn">Далее →</button>
               <button class="btn btn--primary" type="submit" id="submitBtn" style="display:none;">Отправить</button>
             </div>
+            <div class="btn-row" id="consentRow" style="display:none; margin-top: 12px;">
+              <label class="consent-checkbox" style="display:flex; align-items:center; gap:10px; cursor:pointer; width: 100%;">
+                <input type="checkbox" id="consentCheckbox" style="width:20px; height:20px; accent-color:var(--accent); flex-shrink: 0;" />
+                <span style="font-size:14px; color:var(--text);">Согласен(а) с обработкой персональных данных</span>
+              </label>
+            </div>
           </div>
         </form>
       </section>
@@ -981,7 +1012,7 @@
           </div>
         </div>
 
-        <div class="result-launcher" id="resultLauncher" hidden>
+        <div class="result-launcher" id="resultLauncher">
           <div class="result-launcher__label">Итог анкеты</div>
           <h3 class="result-launcher__title" id="resultLauncherTitle">—</h3>
           <p class="result-launcher__summary" id="resultLauncherSummary">
@@ -1027,6 +1058,30 @@
       international: 15
     };
 
+    const clientScoreMatrix = {
+      default: {
+        small: 5,
+        mid: 8,
+        large: 12,
+        international: 15
+      },
+      "Контент-маркетинг": {
+        small: 5,
+        mid: 8,
+        large: 12,
+        international: 15
+      },
+      "Дизайн и айдентика": {
+        small: 10,
+        mid: 10,
+        large: 10,
+        international: 10
+      }
+      // Для других специализаций используется default
+    };
+
+    const clientScoreStrategy = "max"; // стратегия для нескольких клиентов: "max" или "average"
+
     const openEndedScore = {
       no: 0,
       sometimes: 5,
@@ -1053,6 +1108,8 @@
     const prevBtn = $("#prevBtn");
     const nextBtn = $("#nextBtn");
     const submitBtn = $("#submitBtn");
+    const consentCheckbox = $("#consentCheckbox");
+    const consentRow = $("#consentRow");
     const resetBtn = $("#resetBtn");
     const resumeInput = $("#resume");
     const resumeName = $("#resumeName");
@@ -1135,6 +1192,7 @@
       prevBtn.disabled = currentStep === 1;
       nextBtn.style.display = currentStep < 3 ? "inline-flex" : "none";
       submitBtn.style.display = currentStep === 3 ? "inline-flex" : "none";
+      consentRow.style.display = currentStep === 3 ? "flex" : "none";
     }
 
     function goToStep(step) {
@@ -1189,8 +1247,17 @@
       return { raw, normalized: clamp(normalized, 0, 25) };
     }
 
-    function calculateClientScore(client) {
-      return clientScore[client] || 0;
+    function calculateClientScore(specialization, clients) {
+      const specScores = clientScoreMatrix[specialization] || clientScoreMatrix.default;
+      if (Array.isArray(clients)) {
+        const scores = clients.map(c => specScores[c] || 0);
+        if (clientScoreStrategy === "max") {
+          return Math.max(...scores);
+        } else if (clientScoreStrategy === "average") {
+          return scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+        }
+      }
+      return specScores[clients] || 0;
     }
 
     function calculateOpenEndedScore(value) {
@@ -1300,6 +1367,7 @@
       const cases = $("#cases").value.trim();
       const portfolioRaw = $("#portfolioUrl").value.trim();
       const profile = $("#mainProfile").value.trim();
+      const contractorType = $('input[name="contractorType"]:checked')?.value || "";
 
       const portfolio = assessPortfolio(portfolioRaw);
       return {
@@ -1317,15 +1385,28 @@
         portfolioRaw,
         portfolio,
         profile,
+        contractorType,
         resumeName: resumeInput.files?.[0]?.name || ""
       };
     }
 
     function calculateResult(data) {
+      // Проверка типа подрядчика - проектная команда или агенство = N/A
+      if (data.contractorType === "team" || data.contractorType === "agency") {
+        return {
+          grade: "N/A",
+          score: 0,
+          subscores: {},
+          reasoning: "Так как вы работаете как отдельная проектная команда / агенство, мы не сможем оценить ваш грейд единолично, поэтому система покажет «N/A» при автоматическом скоринге.",
+          limitations_applied: ["Тип подрядчика: проектная команда/агенство"],
+          isNA: true
+        };
+      }
+
       const experience = calculateExperienceScore(data.experienceYears);
       const role = calculateRoleScore(data.role);
       const responsibility = calculateResponsibilityScore(data.responsibilities);
-      const clients = calculateClientScore(data.clients);
+      const clients = calculateClientScore(data.specialization, data.clients);
       const open_ended = calculateOpenEndedScore(data.openEnded);
       const cases = scoreCases(data.cases);
       const portfolioScore = data.portfolio.valid ? data.portfolio.score : 0;
@@ -1341,6 +1422,90 @@
       const limitations = [];
       let maxGradeIndex = 4;
 
+      // CAP RULES - Ограничения в зависимости от специализации
+      const spec = data.specialization;
+      const clientType = data.clients;
+
+      // Специализации с фиксированным значением 7,5
+      const fixedScoreSpecs = [
+        "Дизайн и айдентика",
+        "Копирайтинг",
+        "Брендинг",
+        "Креативная стратегия",
+        "UX/UI дизайн",
+        "Web-разработка",
+        "No-code разработка",
+        "Аналитика и BI",
+        "Growth маркетинг"
+      ];
+
+      // Специализации с ограничениями по типу клиента
+      const clientLimitSpecs = [
+        "Таргетированная реклама",
+        "Контекстная реклама",
+        "Инфлюенс-маркетинг",
+        "SEO",
+        "Контент-маркетинг",
+        "PR и коммуникации",
+        "Маркетинговая стратегия"
+      ];
+
+      // Специализации с особыми ограничениями
+      const specialLimitSpecs = {
+        "Исследования рынка": { small: 6, mid: 10, large: 13, international: 15 },
+        "Видео-продакшен": { small: 7, mid: 10, large: 15, international: 15 }
+      };
+
+      let capApplied = false;
+      let capMaxScore = 100;
+
+      // Дизайн и айдентика -> 7,5 (75 баллов)
+      if (spec === "Дизайн и айдентика") {
+        capMaxScore = 75;
+        capApplied = true;
+        limitations.push("Специализация 'Дизайн и айдентика' → ограничение 7,5 (75 баллов)");
+      }
+      // Фиксированные специализации
+      else if (fixedScoreSpecs.includes(spec)) {
+        capMaxScore = 75;
+        capApplied = true;
+        limitations.push(`Специализация '${spec}' → ограничение 7,5 (75 баллов)`);
+      }
+      // Особые ограничения для Исследований рынка
+      else if (spec === "Исследования рынка") {
+        capMaxScore = specialLimitSpecs[spec][clientType] * 5;
+        capApplied = true;
+        limitations.push(`Специализация 'Исследования рынка' → макс. ${capMaxScore} баллов для типа клиента '${clientType}'`);
+      }
+      // Особые ограничения для Видео-продакшен
+      else if (spec === "Видео-продакшен") {
+        capMaxScore = specialLimitSpecs[spec][clientType] * 5;
+        capApplied = true;
+        limitations.push(`Специализация 'Видео-продакшен' → макс. ${capMaxScore} баллов для типа клиента '${clientType}'`);
+      }
+      // Ограничения по типу клиента для других специализаций
+      else if (clientLimitSpecs.includes(spec)) {
+        const limits = {
+          small: 6,
+          mid: 9,
+          large: 12,
+          international: 15
+        };
+        capMaxScore = limits[clientType] * 5;
+        capApplied = true;
+        limitations.push(`Специализация '${spec}' → макс. ${capMaxScore} баллов для типа клиента '${clientType}'`);
+      }
+
+      // Инфлюенс-маркетинг особые правила
+      if (spec === "Инфлюенс-маркетинг") {
+        if (clientType === "small") {
+          capMaxScore = 25; // фиксированное 5
+          capApplied = true;
+          limitations.push("Инфлюенс-маркетинг + малый бизнес → фиксированное значение 5 (25 баллов)");
+        }
+      }
+
+      // Применяем ограничение опыта
       if (data.experienceYears <= 0) {
         maxGradeIndex = Math.min(maxGradeIndex, 0);
         limitations.push("Нет опыта → максимум Junior");
@@ -1372,7 +1537,12 @@
       const baseGradeIndex = gradeIndexFromScore(baseScore);
       const finalGradeIndex = Math.min(baseGradeIndex, maxGradeIndex);
       const finalGrade = grades[finalGradeIndex];
-      const finalScore = Math.min(baseScore, gradeUpper[finalGradeIndex]);
+      
+      // Применяем Cap ограничение
+      let finalScore = Math.min(baseScore, gradeUpper[finalGradeIndex]);
+      if (capApplied) {
+        finalScore = Math.min(finalScore, capMaxScore);
+      }
 
       const uniqueLimitations = [...new Set(limitations)];
       if (!uniqueLimitations.length) uniqueLimitations.push("Ограничения не применялись");
@@ -1381,7 +1551,7 @@
         data,
         { experience, role, responsibility: responsibility.normalized, clients, evidence },
         bonusObj.reasons,
-        uniqueLimitations.filter(x => x !== "Ограничения не применялись"),
+        uniqueLimitations.filter(x => x !== "Ограничения не применявались"),
         finalGrade
       );
 
@@ -1422,6 +1592,9 @@
         if (fullName.length < 3) fail("fullName", "Укажите ФИО.");
         if (!telegram || !isValidTelegram(telegram)) fail("telegram", "Telegram должен быть в формате @username.");
         if (!isValidPhone(phone)) fail("phone", "Укажите корректный телефон.");
+        
+        const contractorType = $('input[name="contractorType"]:checked');
+        if (!contractorType) fail("contractorType", "Выберите тип подрядчика.");
       }
 
       const specialization = $("#specialization").value;
@@ -1463,7 +1636,7 @@
     }
 
     function renderResultLauncher(result) {
-      resultLauncher.hidden = false;
+      resultLauncher.classList.add("is-visible");
       resultLauncherTitle.textContent = `Ваш грейд: ${result.grade}`;
       resultLauncherSummary.textContent = `Форма заполнена полностью. Итог: ${result.score}/100.`;
       resultLauncherScore.textContent = `${result.score}/100`;
@@ -1504,6 +1677,15 @@
       if (file) showToast("PDF добавлен");
     });
 
+    // Обработчик для типа подрядчика - показывает popup сразу при выборе
+    document.querySelectorAll('input[name="contractorType"]').forEach(radio => {
+      radio.addEventListener("change", function() {
+        if (this.value === "team" || this.value === "agency") {
+          alert("Так как вы работаете как отдельная проектная команда / агенство, мы не сможем оценить ваш грейд, поэтому система покажет «N/A» при автоматическом скоринге. Менеджер отсмотрит вашу анкету вручную");
+        }
+      });
+    });
+
     prevBtn.addEventListener("click", () => {
       if (currentStep > 1) goToStep(currentStep - 1);
     });
@@ -1520,7 +1702,7 @@
       clearAllFieldErrors();
       lastResult = null;
       window.__contractorResult = null;
-      resultLauncher.hidden = true;
+      resultLauncher.classList.remove("is-visible");
       resultLauncherTitle.textContent = "—";
       resultLauncherSummary.textContent = "Итог заполнения появится после отправки формы.";
       resultLauncherScore.textContent = "— /100";
@@ -1539,11 +1721,21 @@
         return;
       }
 
+      if (!consentCheckbox.checked) {
+        showFormAlert("Пожалуйста, подтвердите согласие на обработку персональных данных.");
+        return;
+      }
+
       const data = collectData();
       const result = calculateResult(data);
       lastResult = result;
       window.__contractorResult = result;
       sessionStorage.setItem("6sense_last_result", JSON.stringify(result));
+
+      // Показываем popup для N/A
+      if (result.isNA) {
+        alert("Так как вы работаете как отдельная проектная команда / агенство, мы не сможем оценить ваш грейд единолично, поэтому система покажет «N/A» при автоматическом скоринге.");
+      }
 
       renderResultLauncher(result);
       showToast(`Форма заполнена · ${result.grade} / ${result.score}`);
